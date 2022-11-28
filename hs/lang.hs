@@ -2,7 +2,9 @@
 {- stack script
  --optimize
  --ghc-options -Wall
- --resolver    lts-17.8
+ --resolver    lts-20.2
+ --package containers
+ --package mtl
  -}
 {-# LANGUAGE RecordWildCards, LambdaCase #-}
 
