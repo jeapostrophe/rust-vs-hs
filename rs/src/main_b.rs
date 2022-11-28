@@ -99,7 +99,7 @@ impl EvalEnv {
     }
   }
 
-  fn run(&self, e: Expr) -> () {
+  fn run(&self, e: &Expr) -> () {
     match e.eval(self) {
       Ok(v) => println!("Succ: {:?}", v),
       Err(s) => println!("Fail: {:?}", s),
@@ -126,7 +126,7 @@ fn main() {
            ]),
       ]))
     )))));
-  e.run(e1.clone());
+  e.run(&e1);
 
   let e1b = 
     ELet(x.clone(), Box::new(EVal(VNum(7))),
@@ -134,7 +134,7 @@ fn main() {
         e1,
         EVar(x.clone())
     ])));
-  e.run(e1b);
+  e.run(&e1b);
     
   let e2 =
     EApp(PAdd, vec![
@@ -143,12 +143,12 @@ fn main() {
          ]),
          EVal(VNum(5)),
     ]);
-  e.run(e2);
+  e.run(&e2);
 
   let e3 =
     EApp(PDiv, vec![
          EVal(VNum(5)),
          EVal(VNum(0)),
     ]);
-  e.run(e3);
+  e.run(&e3);
 }
