@@ -49,7 +49,7 @@ impl Prim {
           Ok(Num(xn/yn))
         }
       },
-      (NumToStr, [ Num(n) ]) => Ok(Str(format!("{:?}", n))),
+      (NumToStr, [ Num(n) ]) => Ok(Str(n.to_string())),
       _ => Err("prim wrong args".to_string()),
     }
   }
@@ -71,9 +71,8 @@ impl Eval for Expr {
       Var(v) => v.eval(ee),
       Ret(v) => Ok(v.clone()),
       App(p, args) => {
-        let rvs: Result<Vec<_>, String> = args.iter().map(|x| x.eval(ee)).collect();
-        let vs = rvs?;
-        p.eval_prim(ee, vs)
+        let rvs: Result<Vec<_>, _> = args.iter().map(|x| x.eval(ee)).collect();
+        p.eval_prim(ee, rvs?)
       },
       Let(x, xe, e) => {
         let xv = xe.eval(ee)?;
