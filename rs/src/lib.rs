@@ -1,4 +1,4 @@
-use wasm_bindgen::prelude::*;
+//use wasm_bindgen::prelude::*;
 use im_rc::hashmap::*;
 use im_rc::hashmap;
 
@@ -107,7 +107,7 @@ impl EvalEnv {
   }
 }
 
-#[wasm_bindgen]
+//#[wasm_bindgen]
 pub fn run_examples() {
   use Val::*; use Expr::*; use Prim::*;
 
