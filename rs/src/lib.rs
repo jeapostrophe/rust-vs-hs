@@ -1,31 +1,29 @@
+use wasm_bindgen::prelude::*;
 use im_rc::hashmap::*;
 use im_rc::hashmap;
 
 #[derive(Clone, Copy, Debug)]
 enum Prim {
-  PAdd,
-  PMul,
-  PDiv,
-  PNumToStr,
+  Add,
+  Mul,
+  Div,
+  NumToStr,
 }
-use Prim::*;
 
 #[derive(Clone, Debug)]
 enum Val {
-  VNum(i32),
-  VStr(String),
+  Num(i32),
+  Str(String),
 }
-use Val::*;
 
 #[derive(Clone, Debug)]
 enum Expr {
-  EVar(String),
-  EVal(Val),
-  EApp(Prim, Vec<Expr>),
-  ELet(String, Box<Expr>, Box<Expr>),
-  EDbg(Box<Expr>),
+  Var(String),
+  Ret(Val),
+  App(Prim, Vec<Expr>),
+  Let(String, Box<Expr>, Box<Expr>),
+  Dbg(Box<Expr>),
 }
-use Expr::*;
 
 // Evaluator
 type EvalT = Result<Val, String>;
@@ -40,17 +38,18 @@ trait Eval {
 
 impl Prim {
   fn eval_prim(&self, _ee: &EvalEnv, vs:Vec<Val>) -> EvalT {
+    use Prim::*; use Val::*;
     match (self, &vs[..]) {
-      (PAdd, [ VNum(xn), VNum(yn) ]) => Ok(VNum(xn+yn)),
-      (PMul, [ VNum(xn), VNum(yn) ]) => Ok(VNum(xn*yn)),
-      (PDiv, [ VNum(xn), VNum(yn) ]) => {
+      (Add, [ Num(xn), Num(yn) ]) => Ok(Num(xn+yn)),
+      (Mul, [ Num(xn), Num(yn) ]) => Ok(Num(xn*yn)),
+      (Div, [ Num(xn), Num(yn) ]) => {
         if *yn == 0 {
           Err("div by zero".to_string())
         } else {
-          Ok(VNum(xn/yn))
+          Ok(Num(xn/yn))
         }
       },
-      (PNumToStr, [ VNum(n) ]) => Ok(VStr(format!("{:?}", n))),
+      (NumToStr, [ Num(n) ]) => Ok(Str(format!("{:?}", n))),
       _ => Err("prim wrong args".to_string()),
     }
   }
@@ -67,22 +66,23 @@ impl Eval for String {
 
 impl Eval for Expr {
   fn eval(&self, ee: &EvalEnv) -> EvalT {
+    use Expr::*;
     match self {
-      EVar(v) => v.eval(ee),
-      EVal(v) => Ok(v.clone()),
-      EApp(p, args) => {
-        let rvs: Result<Vec<Val>, String> = args.into_iter().map(|x| x.eval(ee)).collect();
+      Var(v) => v.eval(ee),
+      Ret(v) => Ok(v.clone()),
+      App(p, args) => {
+        let rvs: Result<Vec<_>, String> = args.iter().map(|x| x.eval(ee)).collect();
         let vs = rvs?;
         p.eval_prim(ee, vs)
       },
-      ELet(x, xe, e) => {
+      Let(x, xe, e) => {
         let xv = xe.eval(ee)?;
         let ep = EvalEnv {
           env: ee.env.update(x.clone(), xv),
         };
         e.eval(&ep)
       }
-      EDbg(xe) => {
+      Dbg(xe) => {
         println!("=> {:?}", xe);
         let xv = xe.eval(ee)?;
         println!("<= {:?}", xv);
@@ -99,7 +99,7 @@ impl EvalEnv {
     }
   }
 
-  fn run(&self, e: &Expr) -> () {
+  fn run(&self, e: &Expr) {
     match e.eval(self) {
       Ok(v) => println!("Succ: {:?}", v),
       Err(s) => println!("Fail: {:?}", s),
@@ -107,48 +107,50 @@ impl EvalEnv {
   }
 }
 
-// Examples
-fn main() {
+#[wasm_bindgen]
+pub fn run_examples() {
+  use Val::*; use Expr::*; use Prim::*;
+
   let e = EvalEnv::new();
 
   let x = "x".to_string();
   let y = "y".to_string();
 
   let e1 =
-    ELet(x.clone(), Box::new(EVal(VNum(5))),
-    Box::new(ELet(y.clone(), Box::new(EVal(VNum(4))),
-    Box::new(EDbg(
-      Box::new(EApp(PAdd, vec![
-           EVar(x.clone()),
-           EApp(PMul, vec![
-                EVar(x.clone()),
-                EVar(y.clone()),
+    Let(x.clone(), Box::new(Ret(Num(5))),
+    Box::new(Let(y.clone(), Box::new(Ret(Num(4))),
+    Box::new(Dbg(
+      Box::new(App(Add, vec![
+           Var(x.clone()),
+           App(Mul, vec![
+                Var(x.clone()),
+                Var(y.clone()),
            ]),
       ]))
     )))));
   e.run(&e1);
 
   let e1b = 
-    ELet(x.clone(), Box::new(EVal(VNum(7))),
-      Box::new(EApp(PAdd, vec![
+    Let(x.clone(), Box::new(Ret(Num(7))),
+      Box::new(App(Add, vec![
         e1,
-        EVar(x.clone())
+        Var(x.clone())
     ])));
   e.run(&e1b);
     
   let e2 =
-    EApp(PAdd, vec![
-         EApp(PNumToStr, vec![
-              EVal(VNum(5)),
+    App(Add, vec![
+         App(NumToStr, vec![
+              Ret(Num(5)),
          ]),
-         EVal(VNum(5)),
+         Ret(Num(5)),
     ]);
   e.run(&e2);
 
   let e3 =
-    EApp(PDiv, vec![
-         EVal(VNum(5)),
-         EVal(VNum(0)),
+    App(Div, vec![
+         Ret(Num(5)),
+         Ret(Num(0)),
     ]);
   e.run(&e3);
 }

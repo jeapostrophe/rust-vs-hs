@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "name": "ROOT",
+      "path": "../"
+    },
+    {
+      "name": "Haskell",
+      "path": "../hs"
+    },
+    {
+      "name": "Rust",
+      "path": "../rs"
+    },
+  ],
+  "settings": {}
+}
