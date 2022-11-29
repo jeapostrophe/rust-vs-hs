@@ -1,8 +1,11 @@
 #!/bin/sh -e
+ROOT=$PWD
 
-cd rs
+cd ${ROOT}/rs
+time cargo run --release
+cd ${ROOT}/rs
 wasm-pack build --target nodejs
-cd ..
-cd ts
+cd ${ROOT}/ts
 npx tsc
-node --experimental-wasm-modules index.mjs
+time node --experimental-wasm-modules index.mjs
+

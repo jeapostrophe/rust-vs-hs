@@ -1,14 +1,21 @@
+#[cfg(target_family = "wasm")]
 use wasm_bindgen::prelude::*;
 use im_rc::hashmap::*;
 use im_rc::hashmap;
 
+#[cfg(target_family = "wasm")]
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
 }
+#[cfg(target_family = "wasm")]
 macro_rules! console_log {
   ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+#[cfg(not(target_family = "wasm"))]
+macro_rules! console_log {
+  ($($t:tt)*) => (println!($($t)*))
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -128,10 +135,10 @@ impl EvalEnv {
   }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_family = "wasm", wasm_bindgen)]
 pub fn run_examples() {
   use Val::*; use Expr::*; use Prim::*;
-
+  
   let e = EvalEnv::new();
 
   let x = "x".to_string();
