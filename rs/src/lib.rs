@@ -8,11 +8,13 @@ enum Prim {
   Mul,
   Div,
   NumToStr,
+  Lt,
 }
 
 #[derive(Clone, Debug)]
 enum Val {
   Num(i32),
+  Bool(bool),
   Str(String),
 }
 
@@ -22,6 +24,8 @@ enum Expr {
   Ret(Val),
   App(Prim, Vec<Expr>),
   Let(String, Box<Expr>, Box<Expr>),
+  If(Box<Expr>, Box<Expr>, Box<Expr>),
+  Fail(String),
   Dbg(Box<Expr>),
 }
 
@@ -41,6 +45,7 @@ impl Eval for PrimApp {
   fn eval(&self, _ee: &EvalEnv) -> EvalT {
     use Prim::*; use Val::*;
     match (self.p, &self.vs[..]) {
+      (Lt, [ Num(xn), Num(yn) ]) => Ok(Bool(xn<yn)),
       (Add, [ Num(xn), Num(yn) ]) => Ok(Num(xn+yn)),
       (Mul, [ Num(xn), Num(yn) ]) => Ok(Num(xn*yn)),
       (Div, [ Num(xn), Num(yn) ]) => {
@@ -67,7 +72,7 @@ impl Eval for String {
 
 impl Eval for Expr {
   fn eval(&self, ee: &EvalEnv) -> EvalT {
-    use Expr::*;
+    use Expr::*; use Val::*;
     match self {
       Var(v) => v.eval(ee),
       Ret(v) => Ok(v.clone()),
@@ -81,7 +86,14 @@ impl Eval for Expr {
           env: ee.env.update(x.clone(), xv),
         };
         e.eval(&ep)
-      }
+      },
+      If(c, t, f) => {
+        match c.eval(ee)? {
+          Bool(false) => f.eval(ee),
+          _ => t.eval(ee),
+        }
+      },
+      Fail(s) => Err(s.clone()),
       Dbg(xe) => {
         println!("=> {:?}", xe);
         let xv = xe.eval(ee)?;
