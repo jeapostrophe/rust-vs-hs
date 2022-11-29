@@ -12,6 +12,10 @@
       "name": "Rust",
       "path": "../rs"
     },
+    {
+      "name": "TypeScript",
+      "path": "../ts"
+    },
   ],
   "settings": {}
 }

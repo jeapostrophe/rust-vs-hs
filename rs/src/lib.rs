@@ -1,6 +1,15 @@
-//use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::*;
 use im_rc::hashmap::*;
 use im_rc::hashmap;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+macro_rules! console_log {
+  ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 #[derive(Clone, Copy, Debug)]
 enum Prim {
@@ -95,9 +104,9 @@ impl Eval for Expr {
       },
       Fail(s) => Err(s.clone()),
       Dbg(xe) => {
-        println!("=> {:?}", xe);
+        console_log!("=> {:?}", xe);
         let xv = xe.eval(ee)?;
-        println!("<= {:?}", xv);
+        console_log!("<= {:?}", xv);
         Ok(xv)
       },
     }
@@ -113,13 +122,13 @@ impl EvalEnv {
 
   fn run(&self, e: &Expr) {
     match e.eval(self) {
-      Ok(v) => println!("Succ: {:?}", v),
-      Err(s) => println!("Fail: {:?}", s),
+      Ok(v) => console_log!("Succ: {:?}", v),
+      Err(s) => console_log!("Fail: {:?}", s),
     };
   }
 }
 
-//#[wasm_bindgen]
+#[wasm_bindgen]
 pub fn run_examples() {
   use Val::*; use Expr::*; use Prim::*;
 
