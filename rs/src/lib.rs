@@ -36,10 +36,11 @@ trait Eval {
   fn eval(&self, ee:&EvalEnv) -> EvalT;
 }
 
-impl Prim {
-  fn eval_prim(&self, _ee: &EvalEnv, vs:Vec<Val>) -> EvalT {
+struct PrimApp { p: Prim, vs: Vec<Val> }
+impl Eval for PrimApp {
+  fn eval(&self, _ee: &EvalEnv) -> EvalT {
     use Prim::*; use Val::*;
-    match (self, &vs[..]) {
+    match (self.p, &self.vs[..]) {
       (Add, [ Num(xn), Num(yn) ]) => Ok(Num(xn+yn)),
       (Mul, [ Num(xn), Num(yn) ]) => Ok(Num(xn*yn)),
       (Div, [ Num(xn), Num(yn) ]) => {
@@ -72,7 +73,7 @@ impl Eval for Expr {
       Ret(v) => Ok(v.clone()),
       App(p, args) => {
         let rvs: Result<Vec<_>, _> = args.iter().map(|x| x.eval(ee)).collect();
-        p.eval_prim(ee, rvs?)
+        (PrimApp { p: *p, vs: rvs? }).eval(ee)
       },
       Let(x, xe, e) => {
         let xv = xe.eval(ee)?;
