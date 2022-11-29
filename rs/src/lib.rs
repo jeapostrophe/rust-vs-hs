@@ -45,20 +45,17 @@ enum Expr {
   Dbg(Box<Expr>),
 }
 
-// Evaluator
-type EvalT = Result<Val, String>;
-
 struct EvalEnv {
   env: HashMap<String, Val>,
 }
 
 trait Eval {
-  fn eval(&self, ee:&EvalEnv) -> EvalT;
+  fn eval(&self, ee:&EvalEnv) -> Result<Val, String>;
 }
 
 struct PrimApp { p: Prim, vs: Vec<Val> }
 impl Eval for PrimApp {
-  fn eval(&self, _ee: &EvalEnv) -> EvalT {
+  fn eval(&self, _ee: &EvalEnv) -> Result<Val, String> {
     use Prim::*; use Val::*;
     match (self.p, &self.vs[..]) {
       (Lt, [ Num(xn), Num(yn) ]) => Ok(Bool(xn<yn)),
@@ -78,7 +75,7 @@ impl Eval for PrimApp {
 }
 
 impl Eval for String {
-  fn eval(&self, ee: &EvalEnv) -> EvalT {
+  fn eval(&self, ee: &EvalEnv) -> Result<Val, String> {
     match ee.env.get(self) {
       None => Err(format!("Unbound variable: {:?}", self)),
       Some(v) => Ok(v.clone()),
@@ -87,7 +84,7 @@ impl Eval for String {
 }
 
 impl Eval for Expr {
-  fn eval(&self, ee: &EvalEnv) -> EvalT {
+  fn eval(&self, ee: &EvalEnv) -> Result<Val, String> {
     use Expr::*; use Val::*;
     match self {
       Var(v) => v.eval(ee),
