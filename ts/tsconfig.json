@@ -1,26 +1,6 @@
 {
-  //"extends": "@tsconfig/node18-strictest-esm/tsconfig.json",
+  "extends": "@tsconfig/node18-strictest-esm/tsconfig.json",
   "compilerOptions": {
-    "module": "es2022",
-    "moduleResolution": "nodenext",
-
-    "strict": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "exactOptionalPropertyTypes": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-
-    "importsNotUsedAsValues": "error",
-    "checkJs": true,
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "lib": ["es2022", "dom"]
   }
 }
